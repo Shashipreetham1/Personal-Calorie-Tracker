@@ -1,0 +1,39 @@
+{
+  "name": "calorie-tracker-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal Calorie Tracker \u2014 REST API",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "migrate": "node src/db/migrate.js",
+    "migrate:status": "node src/db/migrate.js --status",
+    "preseed": "npm run migrate",
+    "seed": "node src/db/seed.js",
+    "predev": "npm run migrate",
+    "dev": "node --watch src/server.js",
+    "prestart": "npm run migrate",
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@google/genai": "^2.22.0",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.3.0",
+    "pg": "^8.23.0",
+    "zod": "^4.6.2"
+  },
+  "devDependencies": {
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.11"
+  }
+}
