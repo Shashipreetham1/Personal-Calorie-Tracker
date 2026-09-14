@@ -53,8 +53,6 @@ function toAppError(error) {
  *
  * Response shape is identical for every failure:
  * `{ "error": { "code": "...", "message": "...", "details": [...] } }`
- *
- * @type {import('express').ErrorRequestHandler}
  */
 // eslint-disable-next-line no-unused-vars -- Express identifies error middleware by arity.
 export function errorHandler(error, req, res, next) {

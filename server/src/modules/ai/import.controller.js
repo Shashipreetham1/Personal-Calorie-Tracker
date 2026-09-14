@@ -5,8 +5,6 @@ import * as pdfService from './pdf.service.js';
  *
  * Saves nothing. The client reviews the rows and posts the ones it wants to
  * `/api/import/confirm`.
- *
- * @type {import('express').RequestHandler}
  */
 export async function importPdf(req, res) {
   const result = await pdfService.importFromPdf(req.user.id, {
@@ -23,8 +21,6 @@ export async function importPdf(req, res) {
  * A mixed result is a success, not a failure: the response reports what landed
  * and what did not, so the client can show the rejected rows for correction
  * without losing the accepted ones.
- *
- * @type {import('express').RequestHandler}
  */
 export async function confirmImport(req, res) {
   const result = await pdfService.confirmImport(req.user.id, req.validated.body.entries);

@@ -1,14 +1,9 @@
 /**
- * Demo data catalogue.
+ * Demo data catalogue — data here, the code that arranges it in seed.js.
  *
- * Kept separate from the seeding logic so the two can be read independently:
- * this file is data a nutritionist could check, seed.js is the code that
- * arranges it into three weeks of history.
- *
- * Nutrition figures are per the stated unit and are realistic rather than
- * exact. Micronutrient key sets deliberately DIFFER between foods — that is
- * what makes the Phase 6 micro report (which unnests JSONB and sums by key)
- * worth testing: a real user's data has ragged keys, not a fixed schema.
+ * Figures are realistic rather than exact. Micronutrient key sets deliberately
+ * DIFFER between foods, because that is what the micro report has to cope with:
+ * real data has ragged keys, not a fixed schema.
  */
 
 /** The account a reviewer logs in with. Password must satisfy the signup rules. */

@@ -5,7 +5,7 @@ import { paginate, paginatedResponse } from '../../utils/pagination.js';
 /**
  * Records a food entry.
  *
- * Called by `POST /api/entries`, the Phase 8 `log_meal` chat tool, and the
+ * Called by `POST /api/entries`, the `log_meal` chat tool, and the
  * confirm step of photo extraction and PDF import. Plain arguments in, plain
  * data out — no `req`, no `res`, so every path shares this one implementation.
  *

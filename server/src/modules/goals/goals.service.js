@@ -47,7 +47,7 @@ export function reconcileMacros({ dailyCalories, proteinG, carbsG, fatG }) {
 /**
  * Records a new goal.
  *
- * Called by both `POST /api/goals` and the Phase 8 `set_goal` chat tool, which
+ * Called by both `POST /api/goals` and the `set_goal` chat tool, which
  * is why it takes plain arguments and returns plain data — no `req`, no `res`.
  *
  * @param {number} userId

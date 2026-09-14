@@ -41,14 +41,10 @@ export function formatQuantity(quantity, unit) {
 /**
  * The timezone every date and time in the UI is rendered in.
  *
- * The server stores instants and aggregates reports by ITS day boundaries (UTC
- * in Docker). Rendering in the viewer's local zone instead would put an entry
- * on a different day in History than the one the Reports charts count it in —
- * a 20:30 dinner shows as 02:00 the next morning at UTC+5:30. One timezone
- * across the whole app keeps every screen telling the same story.
- *
- * Per-user timezones are the real fix and are listed in the README as future
- * work; until then this is stated rather than hidden.
+ * The server aggregates reports by ITS day boundaries (UTC in Docker). Using
+ * the viewer's zone instead would put an entry on a different day in History
+ * than Reports counts it in — a 20:30 dinner reads as 02:00 the next morning at
+ * UTC+5:30. Per-user timezones are listed in the README as future work.
  */
 export const DISPLAY_TIMEZONE = 'UTC';
 
@@ -153,14 +149,10 @@ export const SOURCE_ICONS = {
 /**
  * Renders an assistant reply as plain text.
  *
- * The model is asked for plain prose, but language models reach for markdown by
- * habit, and a stray `**Calories:**` in a chat bubble looks broken. Stripping
- * the markers at display time is robust in a way a prompt instruction is not —
- * it works even on the turn where the model forgets.
- *
- * Deliberately not a markdown renderer: the reply should read as conversation,
- * not as a formatted document, and a parser would be a dependency and an
- * injection surface for a few characters of cleanup.
+ * The model is asked for plain prose but reaches for markdown by habit, and a
+ * stray `**Calories:**` in a chat bubble looks broken. Stripping at display
+ * time works even on the turn the model forgets. Not a markdown renderer — a
+ * parser would be a dependency for a few characters of cleanup.
  *
  * @param {string} text
  * @returns {string}

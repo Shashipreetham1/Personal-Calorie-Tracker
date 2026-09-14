@@ -11,19 +11,13 @@ import { toGeminiJsonSchema } from '../ai/jsonSchema.js';
 /**
  * The seven chat tools.
  *
- * **Every one is a thin wrapper over a service function the REST controllers
- * already call.** `log_meal` runs `entriesService.create` — the same function
- * behind `POST /api/entries`, with the same validation, the same ownership
- * rules and the same repository. There is no business logic in this file, and
- * there must never be: if a tool needs behaviour that does not exist yet, the
- * service is what should grow, not the tool.
- *
- * That is also why services were kept free of `req`/`res` from Phase 2 onward.
- * This file is where that decision is cashed in.
+ * Every one is a thin wrapper over a service the REST controllers already call:
+ * `log_meal` runs `entriesService.create`, the same function behind
+ * `POST /api/entries`. There is no business logic in this file — if a tool
+ * needs behaviour that does not exist, the service should grow, not the tool.
  *
  * Argument schemas are reused from the modules that own them, so a rule added
- * to the REST endpoint (macros must be non-negative, dates cannot be in the
- * future) applies to natural language the same day, for free.
+ * to an endpoint applies to natural language for free.
  */
 
 /** Arguments for `log_meal`: the create-entry contract, minus the source. */

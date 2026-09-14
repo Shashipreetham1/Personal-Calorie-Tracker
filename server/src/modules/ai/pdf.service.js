@@ -18,11 +18,9 @@ import { logger } from '../../utils/logger.js';
 /**
  * Reads a food diary PDF and returns draft entries.
  *
- * The PDF bytes go straight to the model. Running a text extractor such as
- * `pdf-parse` first would be actively harmful: it flattens a table into a
- * stream of words, destroying the column alignment that says which number is
- * calories and which is protein. The model reads the document as a document,
- * layout included.
+ * The bytes go straight to the model. Running a text extractor first would
+ * flatten the table into a stream of words, losing the column alignment that
+ * says which number is calories and which is protein.
  *
  * @param {number} userId
  * @param {{ buffer: Buffer, mimeType: string }} file  Already size- and
@@ -80,15 +78,10 @@ export async function importFromPdf(userId, file) {
 /**
  * Imports the rows the user reviewed and confirmed.
  *
- * Partial failure is the normal case, not an exception. A diary can easily hold
- * one row whose date was misread while thirty-nine others are perfect; failing
- * the request would make the user re-review all forty. So each row is validated
- * on its own, the good ones are inserted, and the bad ones come back with the
- * reason and their position in the list.
- *
- * The inserts share one transaction: the rows that pass validation all land or
- * none do, so a database-level failure halfway through cannot leave a
- * half-imported diary that the user would have to reconcile by hand.
+ * Partial failure is the normal case: one misread date should not cost the user
+ * the other thirty-nine rows. Each row is validated on its own, the good ones
+ * are inserted in a single transaction, and the bad ones come back with their
+ * position and reason.
  *
  * @param {number} userId
  * @param {object[]} rows  Unvalidated rows as the client sent them.

@@ -5,15 +5,11 @@ import { createEntrySchema } from '../entries/entries.schema.js';
 /**
  * Schemas for what the model is asked to return.
  *
- * Field names are snake_case here, unlike the rest of the API: this is the
- * model's vocabulary, and matching the phrasing used in the prompt ("food_name",
- * "protein_g") measurably reduces confusion in the reply. The conversion to the
- * application's camelCase draft shape happens in extraction.service.js, which
- * is the boundary where AI data becomes application data.
+ * snake_case here, unlike the rest of the API: it matches the prompt's own
+ * wording. `drafts.js` converts to the application's camelCase shape.
  *
- * Every constraint here is enforced twice: once as a hint to the model via the
- * derived response schema, and once when the reply is parsed. The second is the
- * one that counts.
+ * Every constraint is enforced twice — as a hint to the model, and again when
+ * the reply is parsed. The second is the one that counts.
  */
 
 /**

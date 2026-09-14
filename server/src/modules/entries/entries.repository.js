@@ -127,7 +127,7 @@ const INSERT_BATCH_SIZE = 500;
 /**
  * Inserts many entries in as few statements as possible.
  *
- * Used by the seed script and by Phase 9's PDF import, which needs all rows to
+ * Used by the seed script and by the PDF import, which needs all rows to
  * land or none — pass a transaction client and the caller controls that.
  *
  * @param {number} userId
@@ -222,13 +222,11 @@ const UPDATABLE_COLUMNS = {
 /**
  * Updates the given fields of one entry.
  *
- * `user_id = $n` in the WHERE clause is the ownership check: another user's row
- * simply does not match, so it cannot be read or written. The caller sees the
- * same "no row" result as for an id that does not exist, which is what makes
- * the 404 honest rather than a disguised 403.
+ * `user_id = $n` in the WHERE clause IS the ownership check: another user's row
+ * does not match, giving the same "no row" result as an id that does not exist
+ * — which is what makes the 404 honest rather than a disguised 403.
  *
- * Column names come from UPDATABLE_COLUMNS — a fixed map, never from the
- * request — so a crafted field name cannot reach the SQL string.
+ * Column names come from UPDATABLE_COLUMNS, never from the request.
  *
  * @param {number} userId
  * @param {number} entryId

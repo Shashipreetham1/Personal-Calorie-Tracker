@@ -1,13 +1,11 @@
 /**
  * The boundary where AI output becomes application data.
  *
- * Both photo extraction and PDF import produce items in the model's vocabulary
- * (snake_case, micronutrients as a list). Everything downstream — the drafts the
- * UI edits, the payload it posts back — speaks the application's shape. That
- * translation happens here, once, so the two features cannot drift apart.
+ * Photo extraction and PDF import both return items in the model's vocabulary
+ * (snake_case, micros as a list); everything downstream speaks the
+ * application's shape. Translating here once keeps the two from drifting.
  *
- * Nothing in this file touches the database. Drafts are proposals; only a user
- * confirming one turns it into a row.
+ * Nothing here touches the database — drafts are proposals until confirmed.
  */
 
 /**

@@ -1,16 +1,12 @@
 import { config } from '../../config/index.js';
 
 /**
- * Cookie options shared by set and clear.
+ * Cookie options shared by set and clear — they must match on everything but
+ * `maxAge`, or the browser treats them as different cookies and logout leaves
+ * the session in place.
  *
- * The two must match on everything except `maxAge`, or the browser treats them
- * as different cookies and logout silently leaves the session cookie in place.
- *
- * - `httpOnly`: JavaScript cannot read the token, so an XSS bug cannot steal it.
- * - `sameSite: 'lax'`: not sent on cross-site POSTs, which blocks CSRF on every
- *   state-changing endpoint while still allowing normal navigation.
- * - `secure` in production only: a secure cookie is dropped over plain HTTP,
- *   which would break `http://localhost` in development.
+ * `httpOnly` keeps the token away from XSS; `sameSite: 'lax'` blocks CSRF on
+ * state-changing requests; `secure` is production-only so localhost still works.
  */
 const baseCookieOptions = {
   httpOnly: true,

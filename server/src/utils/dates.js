@@ -1,19 +1,16 @@
 /**
  * Calendar-date helpers.
  *
- * Dates that represent a day the user picked (a goal's effective date, a report
- * range) are handled as "YYYY-MM-DD" strings throughout, never as Date objects:
- * a Date is an instant and drags a timezone along with it, which is how a goal
- * dated the 13th ends up rendered as the 12th. See the DATE type parser in
- * db/pool.js.
+ * A day the user picked (a goal's effective date, a report range) is handled as
+ * a "YYYY-MM-DD" string, never a Date: a Date is an instant and drags a
+ * timezone with it, which is how a goal dated the 13th renders as the 12th.
  */
 
 /**
  * Today in the server's timezone, as YYYY-MM-DD.
  *
- * Assumption: "today" is the server's day. In Docker the server runs in UTC, so
- * a user in UTC+5:30 filing an entry at 00:30 local is still on the previous
- * server day. Per-user timezones are listed in the README as future work.
+ * "Today" is the server's day — in Docker, UTC. Per-user timezones are listed
+ * in the README as future work.
  *
  * @returns {string}
  */
@@ -24,8 +21,8 @@ export function todayISODate() {
 /**
  * Formats a Date as a calendar date in the server's timezone.
  *
- * Built from the local getters rather than `toISOString().slice(0, 10)`, which
- * would convert to UTC first and return the wrong day for half of every day.
+ * Uses local getters, not `toISOString().slice(0, 10)` — that converts to UTC
+ * first and returns the wrong day for half of every day.
  *
  * @param {Date} date
  * @returns {string} YYYY-MM-DD
@@ -41,8 +38,7 @@ export function toISODate(date) {
 /**
  * Whole days between two calendar dates, inclusive of both ends.
  *
- * Compared as UTC midnights so daylight-saving transitions cannot make a day
- * 23 or 25 hours long and skew the count.
+ * Compared as UTC midnights so a DST transition cannot skew the count.
  *
  * @param {string} from  YYYY-MM-DD
  * @param {string} to    YYYY-MM-DD

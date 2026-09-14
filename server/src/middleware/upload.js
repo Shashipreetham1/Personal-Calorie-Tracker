@@ -37,7 +37,7 @@ const IMAGE_SIGNATURES = [
   },
 ];
 
-/** PDFs, for the Phase 9 import endpoint. */
+/** PDFs, for the bulk import endpoint. */
 const PDF_SIGNATURE = {
   mimeType: 'application/pdf',
   matches: (b) => b.length > 4 && b.subarray(0, 5).toString('ascii') === '%PDF-',
@@ -144,7 +144,7 @@ export const uploadImage = handleUpload(
   { signatures: IMAGE_SIGNATURES, fieldLabel: 'image' },
 );
 
-/** `POST /api/import/pdf` — a single PDF in the `file` field (Phase 9). */
+/** `POST /api/import/pdf` — a single PDF in the `file` field. */
 export const uploadPdf = handleUpload(createUploader(['application/pdf']).single('file'), {
   signatures: [PDF_SIGNATURE],
   fieldLabel: 'file',

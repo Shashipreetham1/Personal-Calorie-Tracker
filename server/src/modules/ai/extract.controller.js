@@ -5,8 +5,6 @@ import * as extractionService from './extraction.service.js';
  *
  * Returns drafts for the user to review. Saves nothing — the client confirms
  * via `POST /api/entries` with `source: 'photo'`.
- *
- * @type {import('express').RequestHandler}
  */
 export async function extractImage(req, res) {
   const result = await extractionService.extractFromImage(

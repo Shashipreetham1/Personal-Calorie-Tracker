@@ -15,11 +15,7 @@ import { request, upload } from './client.js';
  */
 
 /**
- * Parses a food diary PDF into draft entries.
- *
- * **Saves nothing.** The PDF bytes go straight to the model — no text
- * extraction step, which would flatten the table and lose the column alignment
- * that says which number is calories and which is protein.
+ * Parses a food diary PDF into draft entries. **Saves nothing.**
  *
  * @param {File} file  A PDF, at most 5MB.
  * @returns {Promise<{ extractionId: number, rowsDetected: number, notes: string, drafts: ImportDraft[] }>}
@@ -31,9 +27,8 @@ export function importPdf(file) {
 /**
  * Imports the rows the user reviewed and accepted.
  *
- * Each row is validated on its own: the valid ones are inserted together in a
- * transaction and the invalid ones are returned with their position and reason,
- * so one bad row never costs the user the rest.
+ * Each row is validated on its own, so one bad row never costs the user the
+ * rest — rejections come back with their position and reason.
  *
  * @param {ImportDraft[]} entries
  * @returns {Promise<{ imported: number, rejected: number, entries: object[],

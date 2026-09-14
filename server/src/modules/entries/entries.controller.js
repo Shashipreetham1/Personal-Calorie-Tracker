@@ -2,8 +2,6 @@ import * as entriesService from './entries.service.js';
 
 /**
  * POST /api/entries → 201 with the created entry.
- *
- * @type {import('express').RequestHandler}
  */
 export async function create(req, res) {
   const entry = await entriesService.create(req.user.id, req.validated.body);
@@ -12,8 +10,6 @@ export async function create(req, res) {
 
 /**
  * GET /api/entries?from&to&mealType&page&limit → 200, paginated envelope.
- *
- * @type {import('express').RequestHandler}
  */
 export async function list(req, res) {
   const page = await entriesService.list(req.user.id, req.validated.query);
@@ -22,8 +18,6 @@ export async function list(req, res) {
 
 /**
  * PATCH /api/entries/:id → 200 with the updated entry, or 404.
- *
- * @type {import('express').RequestHandler}
  */
 export async function update(req, res) {
   const entry = await entriesService.update(
@@ -36,8 +30,6 @@ export async function update(req, res) {
 
 /**
  * DELETE /api/entries/:id → 204, or 404.
- *
- * @type {import('express').RequestHandler}
  */
 export async function remove(req, res) {
   await entriesService.remove(req.user.id, req.validated.params.id);

@@ -20,9 +20,7 @@ import { request } from './client.js';
 /**
  * Sends a message and waits for the assistant's reply.
  *
- * The request covers a full tool-calling loop on the server, so it can take
- * several seconds — the caller should show a pending state rather than assume
- * an instant response.
+ * Covers a full tool-calling loop server-side, so it can take several seconds.
  *
  * @param {string} message
  * @returns {Promise<{ messageId: number, reply: string, toolCalls: ToolCall[], createdAt: string }>}

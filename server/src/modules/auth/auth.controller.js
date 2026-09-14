@@ -3,8 +3,6 @@ import { setAuthCookie, clearAuthCookie } from './auth.cookie.js';
 
 /**
  * POST /api/auth/signup → 201 with the new user; session cookie set.
- *
- * @type {import('express').RequestHandler}
  */
 export async function signup(req, res) {
   const { user, token, expiresAt } = await authService.signup(req.validated.body);
@@ -15,8 +13,6 @@ export async function signup(req, res) {
 
 /**
  * POST /api/auth/login → 200 with the user; session cookie set.
- *
- * @type {import('express').RequestHandler}
  */
 export async function login(req, res) {
   const { user, token, expiresAt } = await authService.login(req.validated.body);
@@ -30,8 +26,6 @@ export async function login(req, res) {
  *
  * Deliberately not behind `requireAuth`: a user with an expired token must
  * still be able to log out cleanly rather than be told they are not logged in.
- *
- * @type {import('express').RequestHandler}
  */
 export async function logout(_req, res) {
   clearAuthCookie(res);
@@ -40,8 +34,6 @@ export async function logout(_req, res) {
 
 /**
  * GET /api/auth/me → 200 with the authenticated user.
- *
- * @type {import('express').RequestHandler}
  */
 export async function me(req, res) {
   const user = await authService.getAuthenticatedUser(req.user.id);

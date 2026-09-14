@@ -22,7 +22,7 @@ const macroGramsSchema = z
 /**
  * Body of `POST /api/goals`.
  *
- * Also the source of truth for the Phase 8 `set_goal` chat tool: the tool
+ * Also the source of truth for the `set_goal` chat tool: the tool
  * validates the model's arguments with this exact schema before calling the
  * service, so natural-language input is held to the same rules as the form.
  */

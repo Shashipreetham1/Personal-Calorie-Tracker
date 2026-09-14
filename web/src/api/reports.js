@@ -1,12 +1,10 @@
 import { request } from './client.js';
 
 /**
- * Report endpoints.
+ * Report endpoints. All aggregate in SQL and return chart-ready arrays.
  *
- * Every one aggregates in SQL and returns chart-ready arrays. Ranges are
- * inclusive calendar dates; days with no entries come back as zero rows rather
- * than being omitted, so a chart drawn from the result never joins one day
- * straight to the next across a gap.
+ * Ranges are inclusive calendar dates, and a day with no entries comes back as
+ * a zero row rather than being omitted — so a chart never joins across a gap.
  */
 
 /**
@@ -43,8 +41,7 @@ export function getMicroSummary(range) {
 /**
  * Each day's intake against the goal that applied on that day.
  *
- * `goalCalories` is null for days before the user's first goal — there was no
- * target then, and the chart should show no target line rather than a zero one.
+ * `goalCalories` is null before the user's first goal — no target existed then.
  *
  * @param {{ from?: string, to?: string }} range
  * @returns {Promise<{ from: string, to: string, data: object[] }>}

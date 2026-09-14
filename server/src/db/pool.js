@@ -16,15 +16,11 @@ types.setTypeParser(types.builtins.INT8, (value) => (value === null ? null : par
 /**
  * DATE columns stay strings.
  *
- * By default node-postgres turns `date` into a JS Date at LOCAL midnight, so on
- * a machine in UTC+5:30 the goal dated 2026-09-13 serialises to
- * "2026-09-12T18:30:00.000Z" — a day earlier than the user chose, which would
- * silently shift every goal's effective date and every report bucket.
- *
- * `goals.effective_from` is a calendar date, not an instant: it has no time and
- * no timezone. Keeping it as "YYYY-MM-DD" end to end is the only representation
- * that cannot drift. (timestamptz columns such as `consumed_at` ARE instants and
- * keep their normal Date handling.)
+ * node-postgres otherwise turns `date` into a JS Date at LOCAL midnight, so at
+ * UTC+5:30 a goal dated 2026-09-13 serialises as "2026-09-12T18:30:00.000Z" —
+ * a day earlier than the user chose. A calendar date has no time and no zone;
+ * "YYYY-MM-DD" end to end is the only representation that cannot drift.
+ * (`timestamptz` columns like `consumed_at` are real instants and keep Dates.)
  */
 types.setTypeParser(types.builtins.DATE, (value) => value);
 
@@ -66,7 +62,7 @@ export async function query(text, params = [], executor = pool) {
 
 /**
  * Runs `fn` inside a transaction, committing on success and rolling back on
- * throw. Used by multi-row writes such as the Phase 9 bulk import.
+ * throw. Used by multi-row writes such as the PDF bulk import.
  *
  * @template T
  * @param {(client: import('pg').PoolClient) => Promise<T>} fn

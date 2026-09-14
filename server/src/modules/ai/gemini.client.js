@@ -166,7 +166,7 @@ export async function generateJson({ contents, systemInstruction, schema, timeou
 }
 
 /**
- * Raw text generation with tool calling, used by the Phase 8 chat loop.
+ * Raw text generation with tool calling, used by the chat loop.
  *
  * Exposed separately from `generateJson` because the chat turn is a
  * conversation, not a single structured answer: it needs the full candidate

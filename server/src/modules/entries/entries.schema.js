@@ -25,7 +25,7 @@ const FUTURE_TOLERANCE_MS = 60_000;
 /**
  * Micronutrients: an open-ended map of name → amount.
  *
- * Keys are lowercased and trimmed so the Phase 6 micro report, which sums by
+ * Keys are lowercased and trimmed so the micro report, which sums by
  * key, cannot split "Iron_mg" and "iron_mg" into two rows. Values must be
  * positive — a micronutrient the food does not contain is omitted, not zeroed —
  * and finite, since `Infinity` would pass a plain `.positive()` check.
@@ -90,7 +90,7 @@ const entryFields = {
 /**
  * Body of `POST /api/entries`.
  *
- * Also the contract for the Phase 8 `log_meal` chat tool and the confirm step
+ * Also the contract for the `log_meal` chat tool and the confirm step
  * of photo extraction and PDF import — every path into food_entries validates
  * against this one schema.
  */

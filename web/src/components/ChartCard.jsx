@@ -4,10 +4,9 @@ import { LoadingState, EmptyState, ErrorState } from './States.jsx';
 /**
  * The frame every chart sits in: title, state handling, and a table view.
  *
- * The table is not decoration. Reading a value must never depend on hovering —
- * a tooltip is unavailable to keyboard and touch users and invisible in print —
- * and one of the series colours sits below 3:1 contrast on this surface, which
- * obliges a non-colour way to read the data. One toggle covers both.
+ * The table is not decoration: a tooltip is unavailable to keyboard and touch
+ * users, and one series colour sits below 3:1 contrast on this surface, so the
+ * data needs a way to be read without hovering or colour.
  *
  * @param {{ title: string, description?: string, state: { data: any, error: Error|null, loading: boolean, reload: () => void },
  *   isEmpty?: (data: any) => boolean, emptyTitle?: string, emptyDescription?: string,

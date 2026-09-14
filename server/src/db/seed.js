@@ -132,7 +132,7 @@ function buildEntries() {
 
     // Deliberate gaps: days with no entries at all. The reports must return a
     // zero row for these rather than skipping them, which is exactly what the
-    // generate_series gap-filling in Phase 6 is for.
+    // generate_series gap-filling in the reports is for.
     if (EMPTY_DAYS_AGO.includes(daysAgo)) {
       emptyDates.push(toISODate(date));
       continue;

@@ -1,22 +1,13 @@
 import { z } from 'zod';
 
 /**
- * Keywords sent to Gemini in `responseJsonSchema` / `parametersJsonSchema`.
+ * Keywords Gemini accepts in `responseJsonSchema` / `parametersJsonSchema`.
  *
- * Deliberately only the STRUCTURAL ones: what fields exist, their types, which
- * are required, and what they mean. Zod emits valid Draft 2020-12 including
- * `$schema`, `exclusiveMinimum` and `propertyNames`, none of which the API
- * accepts — and in practice it also rejects otherwise-documented bound
- * keywords (`minimum`, `minItems`) in some combinations, with nothing more
- * specific than "Request contains an invalid argument".
- *
- * Dropping bounds costs nothing real. They were only ever hints to the model:
- * the reply is parsed through the same Zod schema afterwards, where the bounds
- * ARE enforced, and the prompt states the important ones in words. Structure is
- * what a response schema is genuinely good at; sanity is our job either way.
- *
- * Converting from Zod rather than hand-writing a second schema is the point —
- * two copies would drift the moment either changed.
+ * Structural only. Zod emits valid Draft 2020-12, but the API rejects several
+ * of those keywords — including bounds like `minimum` in some combinations —
+ * with nothing more useful than "Request contains an invalid argument".
+ * Dropping bounds is safe: they were hints to the model, and the reply is
+ * parsed through the same Zod schema afterwards, where they are enforced.
  */
 const SUPPORTED_KEYWORDS = new Set([
   '$defs',
@@ -68,19 +59,14 @@ function sanitize(schema) {
 }
 
 /**
- * Converts a Zod schema into the JSON Schema Gemini accepts.
- *
- * The single source of truth stays the Zod schema: it constrains the model AND
- * validates the reply. A response schema shapes the output but does not
- * guarantee sanity, so the reply is parsed through Zod regardless.
+ * Converts a Zod schema into the JSON Schema Gemini accepts, keeping one
+ * source of truth: the same schema constrains the model and validates its reply.
  *
  * @param {import('zod').ZodType} schema
- * @param {{ io?: 'input' | 'output' }} [options]
- *   `output` (default) for a response schema: every field with a default is
- *   REQUIRED, because we want the model to fill all of them in.
- *   `input` for tool parameters: a field with a default is OPTIONAL, because
- *   the model should not be forced to invent a timestamp or an empty micros
- *   object on every call — the schema supplies those itself.
+ * @param {{ io?: 'input' | 'output' }} [options]  `output` (default) makes
+ *   defaulted fields required, so the model fills them all in. `input`, for
+ *   tool parameters, leaves them optional so the model need not invent a
+ *   timestamp on every call.
  * @returns {object}
  */
 export function toGeminiJsonSchema(schema, { io = 'output' } = {}) {

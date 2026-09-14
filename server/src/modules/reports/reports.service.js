@@ -4,7 +4,7 @@ import * as reportsRepository from './reports.repository.js';
  * Report services.
  *
  * Each one is a thin pass-through that attaches the resolved range to the
- * result. They stay callable without HTTP because the Phase 8 `weekly_summary`
+ * result. They stay callable without HTTP because the `weekly_summary`
  * chat tool runs these exact functions — the model narrates real SQL output
  * rather than counting rows itself.
  */

@@ -20,7 +20,7 @@ const rangeDateSchema = z.iso.date('Use the format YYYY-MM-DD').optional();
  * Fills in the last 30 days when either bound is missing.
  *
  * Defaults exist so every report is callable with no parameters at all — handy
- * from curl, and it lets the Phase 8 chat tools ask for "recent" data without
+ * from curl, and it lets the chat tools ask for "recent" data without
  * inventing dates.
  *
  * @param {{ from?: string, to?: string }} query

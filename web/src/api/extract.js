@@ -17,8 +17,7 @@ import { upload } from './client.js';
 /**
  * Extracts nutrition information from a photo.
  *
- * Returns drafts for the user to review; **nothing is saved**. Confirming means
- * posting the reviewed values to `createEntry`.
+ * Returns drafts to review; **nothing is saved** until `createEntry`.
  *
  * @param {File} file  JPEG, PNG or WebP, at most 5MB.
  * @param {{ type?: 'label' | 'plate' }} [options]  Omit to let the model decide.

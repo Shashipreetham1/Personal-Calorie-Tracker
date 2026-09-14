@@ -5,8 +5,6 @@ import * as healthService from './health.service.js';
  *
  * 200 `{ status: 'ok', db: 'connected' }` when the database answers,
  * 503 with `db: 'disconnected'` when it does not, so orchestrators can act on it.
- *
- * @type {import('express').RequestHandler}
  */
 export async function getHealth(req, res) {
   const health = await healthService.getHealth();

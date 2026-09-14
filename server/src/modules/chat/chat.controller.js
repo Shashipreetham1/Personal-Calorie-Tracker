@@ -5,8 +5,6 @@ import * as chatService from './chat.service.js';
  *
  * `toolCalls` carries a short `summary` per call so the UI can render an inline
  * card ("Logged 2 rotis — 240 cal") instead of raw JSON.
- *
- * @type {import('express').RequestHandler}
  */
 export async function sendMessage(req, res) {
   const { reply, toolCalls, assistantMessage } = await chatService.sendMessage(
@@ -24,8 +22,6 @@ export async function sendMessage(req, res) {
 
 /**
  * GET /api/chat/history?page&limit → 200, paginated newest first.
- *
- * @type {import('express').RequestHandler}
  */
 export async function getHistory(req, res) {
   const page = await chatService.getHistory(req.user.id, req.validated.query);

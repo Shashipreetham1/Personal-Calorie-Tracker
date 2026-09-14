@@ -1,21 +1,14 @@
 import { query } from '../../db/pool.js';
 
 /**
- * Report SQL.
+ * Report SQL. Two rules shape every query here:
  *
- * Two rules shape every query here:
+ * 1. Aggregation happens in Postgres, never in JavaScript.
+ * 2. Time series come from `generate_series` LEFT JOINed to the data, so a day
+ *    with no entries is a zero row rather than a missing one — otherwise a
+ *    chart joins Monday straight to Wednesday and hides the gap.
  *
- * 1. Aggregation happens in Postgres, never in JavaScript. Pulling three weeks
- *    of rows over the wire to sum them in a loop would be slower and would put
- *    the definition of "a day's calories" in two places.
- *
- * 2. Time series are built from `generate_series` and LEFT JOINed to the data,
- *    so a day with no entries returns a zero row instead of vanishing. Without
- *    it, a chart drawn from the result connects Monday straight to Wednesday
- *    and silently claims Tuesday never happened.
- *
- * Day boundaries are the database's (UTC in Docker) — see the README's
- * assumptions about timezones.
+ * Day boundaries are the database's (UTC in Docker).
  */
 
 /**
@@ -101,22 +94,13 @@ export async function getMacroBreakdown(userId, { from, to, granularity }) {
 /**
  * Micronutrient totals across the range, summed per micronutrient.
  *
- * The least obvious query in the project, so, step by step:
+ * `micros` keys differ from row to row, so there is no fixed column set to SUM.
+ * `jsonb_each_text` expands each entry's object into (key, value) rows — via
+ * CROSS JOIN LATERAL, so it sees that row's own `micros` — which GROUP BY can
+ * then sum by key. Values arrive as text, hence the numeric cast; the regex
+ * guard skips a non-numeric value rather than letting it abort the report.
  *
- * `micros` is a JSONB object whose keys differ from row to row — one entry has
- * `{"iron_mg": 2.4, "fiber_g": 3.1}`, the next `{"calcium_mg": 190}`. There is
- * no fixed column set to SUM, so the object is expanded into rows first:
- * `jsonb_each_text` turns one entry with three micronutrients into three
- * (key, value) rows, which GROUP BY can then sum by key like any other column.
- * `CROSS JOIN LATERAL` is what lets that function see each entry's own `micros`.
- *
- * The values arrive as text (that is what `_text` means), so they are cast to
- * numeric to be summed. The regex guard skips anything non-numeric: the API
- * validates micros as numbers, but a row inserted by hand with `{"iron_mg":
- * "lots"}` would otherwise abort the entire report rather than be ignored.
- *
- * No gap filling here — this is a summary over a period, not a time series, so
- * a micronutrient the user never ate simply has no row.
+ * No gap filling: this is a period summary, not a time series.
  *
  * @param {number} userId
  * @param {{ from: string, to: string }} range
@@ -148,16 +132,12 @@ export async function getMicroSummary(userId, { from, to }) {
 /**
  * Each day's actuals against the goal that applied on that day.
  *
- * The LATERAL join is the point. For every generated day it runs a correlated
- * lookup — "the most recent goal dated on or before THIS day" — which is the
- * only way to resolve a different goal per row in one pass. A plain join to
- * `goals` would attach every goal to every day; picking one in JavaScript
- * afterwards would mean re-implementing the append-only rule outside the
- * database.
+ * The LATERAL join resolves a different goal per row in one pass: for each
+ * generated day it looks up the most recent goal dated on or before it. A plain
+ * join would attach every goal to every day.
  *
- * `goalCalories` is null for days before the user's first goal. That is
- * honest: there was no target then, and the chart should show no target line
- * rather than a zero one.
+ * `goalCalories` is null before the user's first goal — no target existed, and
+ * a zero would draw a false target line.
  *
  * @param {number} userId
  * @param {{ from: string, to: string }} range
