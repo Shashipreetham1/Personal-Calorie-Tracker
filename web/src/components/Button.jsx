@@ -4,7 +4,7 @@
  * While `loading` it shows its own pending label and disables itself, so a slow
  * request cannot be submitted twice by an impatient click.
  *
- * @param {{ variant?: 'primary' | 'secondary' | 'ghost' | 'danger', loading?: boolean,
+ * @param {{ variant?: 'primary' | 'secondary' | 'ghost', loading?: boolean,
  *   loadingLabel?: string, children: React.ReactNode } & React.ButtonHTMLAttributes<HTMLButtonElement>} props
  */
 export function Button({

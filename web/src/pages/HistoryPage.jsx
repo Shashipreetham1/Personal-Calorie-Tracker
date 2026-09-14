@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
 import { listEntries } from '../api/entries.js';
 import { useAsync } from '../hooks/useAsync.js';
-import { LoadingState, EmptyState, ErrorState } from '../components/States.jsx';
+import { EmptyState, ErrorState } from '../components/States.jsx';
+import { SourceTag, SourceLegend } from '../components/SourceTag.jsx';
 import {
   MEALS,
-  SOURCE_ICONS,
   formatCalories,
   formatGrams,
   formatQuantity,
@@ -22,6 +22,17 @@ function defaultRange() {
   from.setDate(from.getDate() - 29);
 
   return { from: toISODate(from), to: toISODate(to) };
+}
+
+/** Placeholder rows at the height of real ones, so the card does not collapse. */
+function TableSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading entries">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div className="skeleton skeleton-row" key={index} />
+      ))}
+    </div>
+  );
 }
 
 export default function HistoryPage() {
@@ -54,7 +65,10 @@ export default function HistoryPage() {
 
   return (
     <section className="page">
-      <h1 className="page-title">History</h1>
+      <div className="page-head">
+        <h1 className="page-title">History</h1>
+        <SourceLegend />
+      </div>
 
       <div className="card filters">
         <div className="field filter-field">
@@ -130,11 +144,11 @@ export default function HistoryPage() {
 
       {!rangeInvalid && (
         <div className="card">
-          {loading && <LoadingState label="Loading entries…" />}
+          {loading && !data && <TableSkeleton />}
 
           {!loading && error && <ErrorState error={error} onRetry={reload} />}
 
-          {!loading && !error && entries.length === 0 && (
+          {!error && data && entries.length === 0 && (
             <EmptyState
               title="No entries in this range"
               description={
@@ -145,9 +159,9 @@ export default function HistoryPage() {
             />
           )}
 
-          {!loading && !error && entries.length > 0 && (
+          {!error && entries.length > 0 && (
             <>
-              <div className="table-scroll">
+              <div className="table-desktop">
                 <table className="table">
                   <caption className="visually-hidden">
                     Food entries from {filters.from} to {filters.to}
@@ -164,37 +178,62 @@ export default function HistoryPage() {
                       <th scope="col" className="numeric">
                         P / C / F
                       </th>
-                      <th scope="col">
-                        <span className="visually-hidden">Source</span>
-                      </th>
+                      <th scope="col">Source</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {entries.map((entry) => {
-                      const source = SOURCE_ICONS[entry.source] ?? SOURCE_ICONS.manual;
-
-                      return (
-                        <tr key={entry.id}>
-                          <td>
-                            <span className="cell-strong">{formatDate(entry.consumedAt)}</span>
-                            <span className="muted cell-sub">{formatTime(entry.consumedAt)}</span>
-                          </td>
-                          <td className="capitalise">{entry.mealType}</td>
-                          <td>{entry.foodName}</td>
-                          <td className="muted">{formatQuantity(entry.quantity, entry.unit)}</td>
-                          <td className="numeric cell-strong">{formatCalories(entry.calories)}</td>
-                          <td className="numeric muted">
-                            {formatGrams(entry.proteinG)} / {formatGrams(entry.carbsG)} /{' '}
-                            {formatGrams(entry.fatG)}
-                          </td>
-                          <td className="source-cell" title={source.label} aria-label={source.label}>
-                            {source.icon}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {entries.map((entry) => (
+                      <tr key={entry.id}>
+                        <td>
+                          <span className="cell-strong">{formatDate(entry.consumedAt)}</span>
+                          <span className="muted cell-sub">{formatTime(entry.consumedAt)}</span>
+                        </td>
+                        <td className="capitalise">{entry.mealType}</td>
+                        <td>{entry.foodName}</td>
+                        <td className="muted">{formatQuantity(entry.quantity, entry.unit)}</td>
+                        <td className="numeric">
+                          <span className="figure cell-strong">
+                            {formatCalories(entry.calories)}
+                          </span>
+                        </td>
+                        <td className="numeric muted">
+                          {formatGrams(entry.proteinG)} / {formatGrams(entry.carbsG)} /{' '}
+                          {formatGrams(entry.fatG)}
+                        </td>
+                        <td>
+                          <SourceTag source={entry.source} iconOnly />
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Below 768px the same rows render as cards: seven columns cannot
+                  be read on a phone, and a horizontally scrolling table is worse. */}
+              <div className="entry-cards">
+                {entries.map((entry) => (
+                  <article className="entry-card" key={entry.id}>
+                    <div className="entry-card-top">
+                      <span className="entry-name">{entry.foodName}</span>
+                      <span className="figure entry-calories">
+                        {formatCalories(entry.calories)}
+                      </span>
+                    </div>
+                    <div className="entry-card-meta">
+                      <span>
+                        {formatDate(entry.consumedAt)} · {formatTime(entry.consumedAt)}
+                      </span>
+                      <span className="capitalise">{entry.mealType}</span>
+                      <span>{formatQuantity(entry.quantity, entry.unit)}</span>
+                      <span>
+                        {formatGrams(entry.proteinG)}p · {formatGrams(entry.carbsG)}c ·{' '}
+                        {formatGrams(entry.fatG)}f
+                      </span>
+                      <SourceTag source={entry.source} />
+                    </div>
+                  </article>
+                ))}
               </div>
 
               <div className="pager">

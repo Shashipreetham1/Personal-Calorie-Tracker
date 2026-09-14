@@ -138,14 +138,6 @@ export const MEALS = [
   { key: 'snacks', label: 'Snacks' },
 ];
 
-/** A small glyph per entry source, shown in listings. */
-export const SOURCE_ICONS = {
-  manual: { icon: '✎', label: 'Typed in' },
-  photo: { icon: '◉', label: 'From a photo' },
-  chat: { icon: '✦', label: 'Via chat' },
-  import: { icon: '⇪', label: 'Imported from a PDF' },
-};
-
 /**
  * Renders an assistant reply as plain text.
  *

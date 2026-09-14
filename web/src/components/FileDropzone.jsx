@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { DocumentIcon } from './icons.jsx';
 
 /**
  * Drop or choose a single file.
@@ -7,11 +8,13 @@ import { useRef, useState } from 'react';
  * the file's magic bytes, which a browser cannot — so this is purely to fail
  * instantly on an obvious mistake instead of after a 5MB upload.
  *
- * @param {{ accept: string[], maxBytes?: number, prompt: string, hint: string,
+ * @param {{ Icon?: (props: object) => JSX.Element, accept: string[], maxBytes?: number,
+ *   prompt: string, hint: string,
  *   busyLabel?: string, buttonLabel?: string, typeError?: string,
  *   onSelect: (file: File) => void, busy?: boolean, disabled?: boolean }} props
  */
 export function FileDropzone({
+  Icon = DocumentIcon,
   accept,
   maxBytes = 5 * 1024 * 1024,
   prompt,
@@ -77,6 +80,7 @@ export function FileDropzone({
           </p>
         ) : (
           <>
+            <Icon size={24} />
             <p className="dropzone-text">{prompt}</p>
             <button
               type="button"

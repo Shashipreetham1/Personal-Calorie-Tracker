@@ -6,9 +6,9 @@ import {
   Cell,
   ComposedChart,
   LabelList,
-  Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -22,24 +22,9 @@ import {
 } from '../api/reports.js';
 import { useAsync } from '../hooks/useAsync.js';
 import { ChartCard } from '../components/ChartCard.jsx';
+import { ChartTooltip, ChartLegend } from '../components/ChartTooltip.jsx';
+import { CHART, MACRO_SERIES, axisProps, gridProps, barCursor } from '../lib/chartTheme.js';
 import { formatCalories, formatGrams, formatDate, toISODate } from '../lib/format.js';
-
-/**
- * Chart colours, taken from the validated categorical palette in fixed slot
- * order (blue, orange, aqua). Assigned per series identity and never by rank,
- * so filtering or reordering never repaints a series.
- */
-const SERIES = {
-  primary: '#2a78d6',
-  secondary: '#eb6834',
-  tertiary: '#1baf7a',
-};
-
-const CHROME = {
-  grid: '#e1e0d9',
-  axis: '#c3c2b7',
-  muted: '#898781',
-};
 
 /** Preset ranges, the way people actually think about them. */
 const PRESETS = [
@@ -65,39 +50,25 @@ function axisDate(value) {
   });
 }
 
-/**
- * Shared tooltip.
- *
- * Names every series it shows, so identity never rests on colour alone, and
- * formats values the same way the rest of the app does.
- */
-function ChartTooltip({ active, payload, label, labelFormatter, unit = '' }) {
-  if (!active || !payload?.length) return null;
-
-  return (
-    <div className="chart-tooltip">
-      <p className="chart-tooltip-label">{labelFormatter ? labelFormatter(label) : label}</p>
-      {payload.map((item) => (
-        <p className="chart-tooltip-row" key={item.dataKey}>
-          <span className="chart-tooltip-swatch" style={{ background: item.color }} aria-hidden="true" />
-          <span>{item.name}</span>
-          <strong>
-            {item.value === null || item.value === undefined
-              ? '—'
-              : `${formatGrams(item.value)}${unit}`}
-          </strong>
-        </p>
-      ))}
-    </div>
-  );
-}
-
 /** Splits "vitamin_c_mg" into a readable name and its unit. */
 function parseMicroKey(key) {
   const parts = key.split('_');
   const unit = ['mg', 'ug', 'g', 'mcg', 'iu'].includes(parts.at(-1)) ? parts.pop() : '';
 
   return { name: parts.join(' '), unit: unit || 'unit' };
+}
+
+/**
+ * Marks a day with nothing logged.
+ *
+ * The line already runs to zero, but a bare corner on the axis reads as missing
+ * data. A small hollow dot says "this day is a real zero" — which is the whole
+ * point of the gap-filled series behind it.
+ */
+function ZeroDayDot({ cx, cy, payload }) {
+  if (!payload || payload.entryCount !== 0) return null;
+
+  return <circle cx={cx} cy={cy} r={3} fill="var(--surface)" stroke={CHART.neutral} strokeWidth={1.5} />;
 }
 
 export default function ReportsPage() {
@@ -112,10 +83,11 @@ export default function ReportsPage() {
   const goalVsActual = useAsync(useCallback(() => getGoalVsActual(range), [range]));
 
   const activePreset = useMemo(
-    () => PRESETS.find((preset) => {
-      const candidate = rangeForDays(preset.days);
-      return candidate.from === range.from && candidate.to === range.to;
-    }),
+    () =>
+      PRESETS.find((preset) => {
+        const candidate = rangeForDays(preset.days);
+        return candidate.from === range.from && candidate.to === range.to;
+      }),
     [range],
   );
 
@@ -123,9 +95,8 @@ export default function ReportsPage() {
    * Micronutrients grouped by unit.
    *
    * Sodium in milligrams and vitamin D in micrograms cannot share an axis —
-   * 15,000 next to 18 renders every other bar as a hairline, and the comparison
-   * would be meaningless anyway. One small chart per unit keeps each on a scale
-   * where its values can actually be read.
+   * 15,000 beside 18 renders every other bar as a hairline. One chart per unit
+   * keeps each on a scale where its values can be read.
    */
   const microGroups = useMemo(() => {
     const groups = new Map();
@@ -141,6 +112,12 @@ export default function ReportsPage() {
       .sort((a, b) => b.rows.length - a.rows.length);
   }, [micros.data]);
 
+  /** The most recent target in range, for the dashed reference line. */
+  const currentTarget = useMemo(() => {
+    const withGoal = (goalVsActual.data?.data ?? []).filter((day) => day.goalCalories !== null);
+    return withGoal.at(-1)?.goalCalories ?? null;
+  }, [goalVsActual.data]);
+
   return (
     <section className="page">
       <div className="page-head">
@@ -148,7 +125,7 @@ export default function ReportsPage() {
       </div>
 
       {/* One filter row above every chart, never per-card controls. */}
-      <div className="card filters">
+      <div className="card filters rise">
         <div className="field filter-field">
           <label className="field-label" htmlFor="report-from">
             From
@@ -201,6 +178,7 @@ export default function ReportsPage() {
           title="Calorie intake"
           description="Daily totals. Days with nothing logged show as zero rather than being skipped."
           state={trend}
+          delay={40}
           isEmpty={(data) => data.data.every((day) => day.calories === 0)}
           table={(data) => (
             <div className="table-scroll">
@@ -226,36 +204,25 @@ export default function ReportsPage() {
           )}
         >
           {(data) => (
-            <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={data.data} margin={{ top: 8, right: 12, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke={CHROME.grid} vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  tickFormatter={axisDate}
-                  tick={{ fill: CHROME.muted, fontSize: 12 }}
-                  stroke={CHROME.axis}
-                  minTickGap={24}
-                />
-                <YAxis
-                  tick={{ fill: CHROME.muted, fontSize: 12 }}
-                  stroke={CHROME.axis}
-                  width={48}
-                />
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={data.data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
+                <CartesianGrid {...gridProps} />
+                <XAxis dataKey="day" tickFormatter={axisDate} minTickGap={28} {...axisProps} />
+                <YAxis width={52} {...axisProps} />
                 <Tooltip
                   content={<ChartTooltip labelFormatter={formatDate} unit=" kcal" />}
-                  cursor={{ stroke: CHROME.axis }}
+                  cursor={{ stroke: CHART.line }}
                 />
                 <Line
                   // Straight segments, not a spline: a smoothed curve invents
-                  // values between days and overshoots below zero on either
-                  // side of a gap day, implying intake that never happened.
+                  // values between days and overshoots either side of a gap.
                   type="linear"
                   dataKey="calories"
                   name="Calories"
-                  stroke={SERIES.primary}
+                  stroke={CHART.accent}
                   strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
+                  dot={<ZeroDayDot />}
+                  activeDot={{ r: 4, fill: CHART.accent, stroke: CHART.surface, strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -266,9 +233,10 @@ export default function ReportsPage() {
           title="Macronutrients"
           description="Protein, carbohydrate and fat, stacked so the bar height is the day's total."
           state={macros}
+          delay={80}
           isEmpty={(data) => data.data.every((bucket) => bucket.entryCount === 0)}
           controls={
-            <div className="segmented segmented-small">
+            <div className="segmented">
               {['day', 'week'].map((option) => (
                 <button
                   key={option}
@@ -308,39 +276,34 @@ export default function ReportsPage() {
           )}
         >
           {(data) => (
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={data.data} margin={{ top: 8, right: 12, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke={CHROME.grid} vertical={false} />
-                <XAxis
-                  dataKey="bucket"
-                  tickFormatter={axisDate}
-                  tick={{ fill: CHROME.muted, fontSize: 12 }}
-                  stroke={CHROME.axis}
-                  minTickGap={24}
-                />
-                <YAxis tick={{ fill: CHROME.muted, fontSize: 12 }} stroke={CHROME.axis} width={48} />
-                <Tooltip
-                  content={<ChartTooltip labelFormatter={formatDate} unit=" g" />}
-                  cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-                />
-                <Legend
-                  iconType="square"
-                  wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-                  // Stated explicitly so the legend reads in the same order the
-                  // segments stack; Recharts orders it by render pass otherwise.
-                  payload={[
-                    { value: 'Protein', type: 'square', color: SERIES.primary },
-                    { value: 'Carbs', type: 'square', color: SERIES.secondary },
-                    { value: 'Fat', type: 'square', color: SERIES.tertiary },
-                  ]}
-                />
-                {/* A 2px surface-coloured gap between stacked segments, rather
-                    than an outline around each one. */}
-                <Bar dataKey="proteinG" name="Protein" stackId="macros" fill={SERIES.primary} stroke="#fff" strokeWidth={1} />
-                <Bar dataKey="carbsG" name="Carbs" stackId="macros" fill={SERIES.secondary} stroke="#fff" strokeWidth={1} />
-                <Bar dataKey="fatG" name="Fat" stackId="macros" fill={SERIES.tertiary} stroke="#fff" strokeWidth={1} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={data.data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="bucket" tickFormatter={axisDate} minTickGap={28} {...axisProps} />
+                  <YAxis width={52} {...axisProps} />
+                  <Tooltip
+                    content={<ChartTooltip labelFormatter={formatDate} unit=" g" />}
+                    cursor={barCursor}
+                  />
+                  {MACRO_SERIES.map((series, index) => (
+                    <Bar
+                      key={series.key}
+                      dataKey={series.key}
+                      name={series.label}
+                      stackId="macros"
+                      fill={series.colour}
+                      // A hairline of the surface colour between segments,
+                      // rather than an outline around each one.
+                      stroke="var(--surface)"
+                      strokeWidth={1}
+                      radius={index === MACRO_SERIES.length - 1 ? [3, 3, 0, 0] : 0}
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+              <ChartLegend series={MACRO_SERIES} />
+            </>
           )}
         </ChartCard>
 
@@ -348,6 +311,7 @@ export default function ReportsPage() {
           title="Goal vs actual"
           description="What you ate each day against the target that applied on that day."
           state={goalVsActual}
+          delay={120}
           isEmpty={(data) => data.data.every((day) => day.entryCount === 0)}
           table={(data) => (
             <div className="table-scroll">
@@ -381,37 +345,69 @@ export default function ReportsPage() {
           )}
         >
           {(data) => (
-            <ResponsiveContainer width="100%" height={280}>
-              <ComposedChart data={data.data} margin={{ top: 8, right: 12, bottom: 4, left: 0 }}>
-                <CartesianGrid stroke={CHROME.grid} vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  tickFormatter={axisDate}
-                  tick={{ fill: CHROME.muted, fontSize: 12 }}
-                  stroke={CHROME.axis}
-                  minTickGap={24}
-                />
-                <YAxis tick={{ fill: CHROME.muted, fontSize: 12 }} stroke={CHROME.axis} width={48} />
-                <Tooltip
-                  content={<ChartTooltip labelFormatter={formatDate} unit=" kcal" />}
-                  cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-                />
-                <Legend iconType="square" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-                {/* Both series are kcal, so they share one axis honestly. */}
-                <Bar dataKey="actualCalories" name="Eaten" fill={SERIES.primary} radius={[4, 4, 0, 0]} />
-                <Line
-                  type="stepAfter"
-                  dataKey="goalCalories"
-                  name="Target"
-                  stroke={SERIES.secondary}
-                  strokeWidth={2}
-                  dot={false}
-                  // A day before the first goal has no target; leave a gap
-                  // rather than drawing a line down to zero.
-                  connectNulls={false}
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={250}>
+                <ComposedChart data={data.data} margin={{ top: 14, right: 8, bottom: 0, left: -12 }}>
+                  <CartesianGrid {...gridProps} />
+                  <XAxis dataKey="day" tickFormatter={axisDate} minTickGap={28} {...axisProps} />
+                  <YAxis width={52} {...axisProps} />
+                  <Tooltip
+                    content={<ChartTooltip labelFormatter={formatDate} unit=" kcal" />}
+                    cursor={barCursor}
+                  />
+
+                  <Bar dataKey="actualCalories" name="Eaten" radius={[3, 3, 0, 0]} strokeWidth={1}>
+                    {data.data.map((day) => {
+                      // Over target is ochre, never red — the app does not
+                      // scold. See the README on tone.
+                      const over = day.goalCalories !== null && day.actualCalories > day.goalCalories;
+
+                      return (
+                        <Cell
+                          key={day.day}
+                          fill={over ? CHART.carbs : CHART.accentSoft}
+                          stroke={over ? CHART.carbs : CHART.accent}
+                        />
+                      );
+                    })}
+                  </Bar>
+
+                  {currentTarget !== null && (
+                    <ReferenceLine
+                      y={currentTarget}
+                      stroke={CHART.inkMuted}
+                      strokeDasharray="4 4"
+                      label={{
+                        value: `target ${formatCalories(currentTarget)}`,
+                        position: 'right',
+                        fill: 'var(--ink-muted)',
+                        fontSize: 11,
+                        fontFamily: 'var(--font-body)',
+                      }}
+                    />
+                  )}
+
+                  {/* The per-day target, which steps when the goal changes. */}
+                  <Line
+                    type="stepAfter"
+                    dataKey="goalCalories"
+                    name="Target"
+                    stroke={CHART.inkMuted}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    dot={false}
+                    connectNulls={false}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+              <ChartLegend
+                series={[
+                  { label: 'Eaten', colour: CHART.accent },
+                  { label: 'Over target', colour: CHART.carbs },
+                  { label: 'Target', colour: CHART.inkMuted },
+                ]}
+              />
+            </>
           )}
         </ChartCard>
 
@@ -419,6 +415,7 @@ export default function ReportsPage() {
           title="Micronutrients"
           description="Totals for the range. Grouped by unit — milligrams and micrograms cannot share a scale."
           state={micros}
+          delay={160}
           isEmpty={(data) => data.data.length === 0}
           emptyTitle="No micronutrients recorded"
           emptyDescription="Entries logged from a nutrition label usually carry them."
@@ -435,6 +432,7 @@ export default function ReportsPage() {
                 <tbody>
                   {data.data.map((row) => {
                     const { name, unit } = parseMicroKey(row.key);
+
                     return (
                       <tr key={row.key}>
                         <td className="capitalise">{name}</td>
@@ -454,47 +452,32 @@ export default function ReportsPage() {
             <div className="micro-facets">
               {microGroups.map((group) => (
                 <div className="micro-facet" key={group.unit}>
-                  <h3 className="micro-facet-title muted">in {group.unit}</h3>
-                  <ResponsiveContainer width="100%" height={Math.max(120, group.rows.length * 34)}>
+                  <h3 className="micro-facet-title">in {group.unit}</h3>
+                  <ResponsiveContainer width="100%" height={Math.max(120, group.rows.length * 32)}>
                     <BarChart
                       data={group.rows}
                       layout="vertical"
-                      margin={{ top: 4, right: 56, bottom: 4, left: 0 }}
+                      margin={{ top: 0, right: 52, bottom: 0, left: 0 }}
                     >
-                      <CartesianGrid stroke={CHROME.grid} horizontal={false} />
-                      <XAxis
-                        type="number"
-                        tick={{ fill: CHROME.muted, fontSize: 12 }}
-                        stroke={CHROME.axis}
-                      />
+                      <XAxis type="number" hide />
                       <YAxis
                         type="category"
                         dataKey="name"
-                        tick={{ fill: CHROME.muted, fontSize: 12 }}
-                        stroke={CHROME.axis}
-                        width={110}
+                        width={104}
+                        {...axisProps}
+                        axisLine={false}
                       />
-                      <Tooltip
-                        content={<ChartTooltip unit={` ${group.unit}`} />}
-                        cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-                      />
-                      <Bar dataKey="total" name="Total" radius={[0, 4, 4, 0]} barSize={14}>
-                        {/* One hue for one series: the nutrient name on the
-                            axis carries identity, so shading bars by size
-                            would encode magnitude twice. */}
-                        {group.rows.map((row) => (
-                          <Cell key={row.name} fill={SERIES.primary} />
-                        ))}
-                        {/* Even inside one unit these span three orders of
-                            magnitude — sodium in the thousands beside vitamin E
-                            in tens — so the smallest bars are a hairline. The
-                            value is written beside each one rather than left to
-                            a hover the reader may never try. */}
+                      <Tooltip content={<ChartTooltip unit={` ${group.unit}`} />} cursor={barCursor} />
+                      <Bar dataKey="total" name="Total" fill={CHART.accent} radius={[0, 3, 3, 0]} barSize={12}>
+                        {/* Within one unit these still span three orders of
+                            magnitude, so the smallest bars are a hairline. The
+                            value is written beside each one. */}
                         <LabelList
                           dataKey="total"
                           position="right"
                           formatter={(value) => formatGrams(value)}
-                          style={{ fill: CHROME.muted, fontSize: 11 }}
+                          className="figure"
+                          style={{ fill: 'var(--ink)', fontSize: 12 }}
                         />
                       </Bar>
                     </BarChart>

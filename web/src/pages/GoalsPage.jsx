@@ -2,10 +2,11 @@ import { useCallback, useMemo, useState } from 'react';
 import { z } from 'zod';
 import { getCurrentGoal, listGoals, createGoal } from '../api/goals.js';
 import { useAsync } from '../hooks/useAsync.js';
-import { LoadingState, EmptyState, ErrorState } from '../components/States.jsx';
+import { EmptyState, ErrorState } from '../components/States.jsx';
 import { FormField } from '../components/FormField.jsx';
 import { Button } from '../components/Button.jsx';
 import { Alert } from '../components/Alert.jsx';
+import { CheckIcon } from '../components/icons.jsx';
 import { formatCalories, formatGrams, formatDate, toISODate } from '../lib/format.js';
 
 /** kcal per gram. Used to show the user what their macros actually add up to. */
@@ -28,31 +29,45 @@ const goalSchema = z.object({
 /** Read-only summary of the goal in effect today. */
 function CurrentGoalCard({ goal }) {
   return (
-    <div className="card goal-current">
+    <div className="card goal-current rise">
       <div className="goal-current-head">
         <div>
           <p className="muted">Current goal</p>
-          <p className="goal-calories">{formatCalories(goal.dailyCalories)} kcal / day</p>
+          <p className="goal-calories figure">{formatCalories(goal.dailyCalories)} kcal / day</p>
         </div>
-        <p className="muted goal-since">In effect since {formatDate(goal.effectiveFrom)}</p>
+        <p className="goal-since">
+          <CheckIcon size={13} />
+          In effect since {formatDate(goal.effectiveFrom)}
+        </p>
       </div>
 
       <dl className="goal-macros">
         <div>
-          <dt className="muted">Protein</dt>
-          <dd>{formatGrams(goal.proteinG)} g</dd>
+          <dt>
+            <span className="progress-swatch" style={{ '--progress-colour': 'var(--protein)' }} />
+            Protein
+          </dt>
+          <dd className="figure">{formatGrams(goal.proteinG)} g</dd>
         </div>
         <div>
-          <dt className="muted">Carbs</dt>
-          <dd>{formatGrams(goal.carbsG)} g</dd>
+          <dt>
+            <span className="progress-swatch" style={{ '--progress-colour': 'var(--carbs)' }} />
+            Carbs
+          </dt>
+          <dd className="figure">{formatGrams(goal.carbsG)} g</dd>
         </div>
         <div>
-          <dt className="muted">Fat</dt>
-          <dd>{formatGrams(goal.fatG)} g</dd>
+          <dt>
+            <span className="progress-swatch" style={{ '--progress-colour': 'var(--fat)' }} />
+            Fat
+          </dt>
+          <dd className="figure">{formatGrams(goal.fatG)} g</dd>
         </div>
         <div>
-          <dt className="muted">Weight goal</dt>
-          <dd>{goal.weightGoalKg ? `${formatGrams(goal.weightGoalKg)} kg` : '—'}</dd>
+          <dt>Weight goal</dt>
+          <dd className="figure">
+            {goal.weightGoalKg ? `${formatGrams(goal.weightGoalKg)} kg` : '—'}
+          </dd>
         </div>
       </dl>
     </div>
@@ -148,11 +163,14 @@ export default function GoalsPage() {
 
   return (
     <section className="page">
-      <h1 className="page-title">Goals</h1>
+      <div className="page-head">
+        <h1 className="page-title">Goals</h1>
+      </div>
 
-      {current.loading && (
-        <div className="card">
-          <LoadingState label="Loading your goal…" />
+      {current.loading && !current.data && (
+        <div className="card" aria-busy="true" aria-label="Loading your goal">
+          <div className="skeleton skeleton-line" style={{ width: '25%' }} />
+          <div className="skeleton skeleton-hero" />
         </div>
       )}
 
@@ -282,7 +300,13 @@ export default function GoalsPage() {
         <div className="card">
           <h2 className="section-title">Goal history</h2>
 
-          {history.loading && <LoadingState label="Loading history…" />}
+          {history.loading && !history.data && (
+            <div aria-busy="true" aria-label="Loading goal history">
+              {Array.from({ length: 3 }, (_, index) => (
+                <div className="skeleton skeleton-row" key={index} />
+              ))}
+            </div>
+          )}
           {!history.loading && history.error && (
             <ErrorState error={history.error} onRetry={history.reload} />
           )}
@@ -295,7 +319,9 @@ export default function GoalsPage() {
               {goals.map((goal, index) => (
                 <li key={goal.id} className="goal-history-item">
                   <div className="goal-history-head">
-                    <span className="cell-strong">{formatCalories(goal.dailyCalories)} kcal</span>
+                    <span className="figure cell-strong">
+                      {formatCalories(goal.dailyCalories)} kcal
+                    </span>
                     {index === 0 && <span className="badge">Current</span>}
                   </div>
                   <p className="muted goal-history-meta">

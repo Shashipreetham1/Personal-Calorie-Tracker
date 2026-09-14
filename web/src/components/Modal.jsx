@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { CloseIcon } from './icons.jsx';
 
 /**
  * A dialog rendered over the page.
@@ -37,7 +38,7 @@ export function Modal({ open, title, onClose, children, footer, wide = false }) 
       <div className="modal-header">
         <h2 className="modal-title">{title}</h2>
         <button type="button" className="button button-ghost" onClick={onClose} aria-label="Close">
-          ✕
+          <CloseIcon />
         </button>
       </div>
 

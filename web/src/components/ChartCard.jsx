@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { LoadingState, EmptyState, ErrorState } from './States.jsx';
+import { EmptyState, ErrorState } from './States.jsx';
 
 /**
  * The frame every chart sits in: title, state handling, and a table view.
  *
- * The table is not decoration: a tooltip is unavailable to keyboard and touch
- * users, and one series colour sits below 3:1 contrast on this surface, so the
- * data needs a way to be read without hovering or colour.
+ * The table is not decoration — a tooltip is unavailable to keyboard and touch
+ * users, so the data needs a way to be read without hovering.
  *
- * @param {{ title: string, description?: string, state: { data: any, error: Error|null, loading: boolean, reload: () => void },
+ * @param {{ title: string, description?: string, delay?: number,
+ *   state: { data: any, error: Error|null, loading: boolean, reload: () => void },
  *   isEmpty?: (data: any) => boolean, emptyTitle?: string, emptyDescription?: string,
  *   controls?: React.ReactNode, table?: (data: any) => React.ReactNode,
  *   children: (data: any) => React.ReactNode }} props
@@ -16,6 +16,7 @@ import { LoadingState, EmptyState, ErrorState } from './States.jsx';
 export function ChartCard({
   title,
   description,
+  delay = 0,
   state,
   isEmpty,
   emptyTitle = 'Nothing to show yet',
@@ -27,17 +28,17 @@ export function ChartCard({
   const [showTable, setShowTable] = useState(false);
 
   const { data, error, loading, reload } = state;
-  // Keep the previous chart on screen while a new range loads. Replacing it
+  // Keep the previous chart on screen while a new range loads; replacing it
   // with a spinner makes every filter change flash the layout apart.
-  const showSpinner = loading && !data;
+  const showSkeleton = loading && !data;
   const empty = data && isEmpty?.(data);
 
   return (
-    <section className="card chart-card">
+    <section className="card chart-card rise" style={{ '--delay': `${delay}ms` }}>
       <header className="chart-head">
         <div>
           <h2 className="section-title">{title}</h2>
-          {description && <p className="muted section-note">{description}</p>}
+          {description && <p className="section-note">{description}</p>}
         </div>
 
         <div className="chart-actions">
@@ -55,13 +56,20 @@ export function ChartCard({
         </div>
       </header>
 
-      {showSpinner && <LoadingState label="Loading…" />}
-      {!showSpinner && error && <ErrorState error={error} onRetry={reload} />}
-      {!showSpinner && !error && empty && (
+      {/* A skeleton the shape of the chart, so nothing jumps when data lands. */}
+      {showSkeleton && (
+        <div aria-busy="true" aria-label={`Loading ${title}`}>
+          <div className="skeleton skeleton-chart" />
+        </div>
+      )}
+
+      {!showSkeleton && error && <ErrorState error={error} onRetry={reload} />}
+
+      {!showSkeleton && !error && empty && (
         <EmptyState title={emptyTitle} description={emptyDescription} />
       )}
 
-      {!showSpinner && !error && data && !empty && (
+      {!showSkeleton && !error && data && !empty && (
         <div className={loading ? 'chart-body chart-body-stale' : 'chart-body'}>
           {showTable && table ? table(data) : children(data)}
         </div>

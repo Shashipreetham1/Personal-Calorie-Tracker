@@ -3,7 +3,6 @@ import { importPdf, confirmImport } from '../api/imports.js';
 import { FileDropzone } from '../components/FileDropzone.jsx';
 import { Button } from '../components/Button.jsx';
 import { Alert } from '../components/Alert.jsx';
-import { EmptyState } from '../components/States.jsx';
 import { MEALS, datetimeLocal, formatCalories, formatGrams } from '../lib/format.js';
 
 /**
@@ -135,7 +134,8 @@ export default function ImportPage() {
         <div className="card">
           <p className="muted section-note">
             Upload a food diary exported as a PDF. The rows are read out of the document and shown
-            here for you to check — nothing is saved until you confirm.
+            here for you to check — nothing is saved until you confirm. A tabular diary with a
+            date, meal, food and calories per row works best.
           </p>
 
           <FileDropzone
@@ -158,18 +158,12 @@ export default function ImportPage() {
             </Alert>
           )}
 
-          {!parsing && !parseError && !result && (
-            <EmptyState
-              title="Nothing imported yet"
-              description="A tabular diary with a date, meal, food and calories per row works best."
-            />
-          )}
         </div>
       )}
 
       {rows.length > 0 && (
         <>
-          <div className="card import-summary">
+          <div className="card import-summary rise">
             <p>
               Found <strong>{parse?.rowsDetected ?? rows.length}</strong> rows in the document.
               {' '}
@@ -193,7 +187,7 @@ export default function ImportPage() {
             <Alert tone="error">{parseError}</Alert>
           </div>
 
-          <div className="card">
+          <div className="card rise" style={{ '--delay': '80ms' }}>
             <div className="table-scroll">
               <table className="table import-table">
                 <caption className="visually-hidden">Rows read from the PDF, editable</caption>
@@ -295,9 +289,17 @@ export default function ImportPage() {
             )}
 
             <div className="import-actions">
-              <span className="muted">
-                {formatCalories(included.reduce((sum, row) => sum + (Number(row.calories) || 0), 0))}{' '}
-                kcal across {included.length} {included.length === 1 ? 'entry' : 'entries'}
+              <span className="import-total">
+                <span className="figure">
+                  {formatCalories(
+                    included.reduce((sum, row) => sum + (Number(row.calories) || 0), 0),
+                  )}
+                </span>{' '}
+                kcal
+                <span className="import-total-label">
+                  {' '}
+                  across {included.length} {included.length === 1 ? 'entry' : 'entries'}
+                </span>
               </span>
               <Button
                 onClick={handleImport}

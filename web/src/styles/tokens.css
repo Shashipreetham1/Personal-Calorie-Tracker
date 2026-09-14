@@ -1,0 +1,127 @@
+/* ---------------------------------------------------------------------------
+   Design tokens — the single source of truth for colour, type, space and depth.
+
+   Nothing in a component may hard-code a colour or a size. Everything below is
+   referenced by name, so the whole app can be re-themed from this one file.
+
+   Direction: warm editorial. Nutrition apps are overwhelmingly cold and
+   clinical; this one uses warm paper, ink-dark text, one confident accent and
+   generous type — closer to a well-set recipe book than a hospital dashboard.
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* --- surfaces and ink ------------------------------------------------- */
+  --paper: #faf8f4;
+  --surface: #ffffff;
+  --surface-sunken: #f5f2ec;
+  --ink: #1c1917;
+  --ink-muted: #6b6259;
+  --line: #e7e2da;
+  --line-strong: #d6cfc3;
+
+  /* --- brand ------------------------------------------------------------- */
+  --accent: #2f5d50;
+  --accent-hover: #264b41;
+  --accent-soft: #e8efea;
+  --accent-on: #ffffff;
+
+  /* --- the macro language -----------------------------------------------
+     Protein is always forest, carbs always ochre, fat always plum — on every
+     chart, bar and legend in the app, so the colour code is learnable in
+     about ten seconds. */
+  --protein: #2f5d50;
+  --carbs: #c4823a;
+  --fat: #8b6f9e;
+  --neutral: #a8a29e;
+
+  /* Soft fills of the same three, for bar tracks and chart areas. */
+  --protein-soft: #e8efea;
+  --carbs-soft: #f7eddf;
+  --fat-soft: #efe9f3;
+
+  /* --- type --------------------------------------------------------------
+     Two faces only. Fraunces (humanist serif) carries display text and every
+     figure; Public Sans carries labels, controls and body copy. */
+  --font-display: 'Fraunces Variable', 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: 'Public Sans Variable', 'Public Sans', 'Helvetica Neue', Helvetica, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, monospace;
+
+  --text-xs: 0.75rem;    /* 12 */
+  --text-sm: 0.875rem;   /* 14 */
+  --text-base: 1rem;     /* 16 */
+  --text-lg: 1.25rem;    /* 20 */
+  --text-xl: 1.75rem;    /* 28 */
+  --text-2xl: 2.5rem;    /* 40 */
+  --text-3xl: 3.5rem;    /* 56 */
+
+  --leading-display: 1.2;
+  --leading-body: 1.5;
+
+  /* --- space: 4px base ---------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* --- radii: nothing rounder than a card --------------------------------- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+
+  /* --- depth: two shadows, both neutral ----------------------------------- */
+  --shadow-card: 0 1px 2px rgb(28 25 23 / 4%);
+  --shadow-raised: 0 12px 32px -8px rgb(28 25 23 / 18%);
+
+  /* --- motion ------------------------------------------------------------- */
+  --ease: cubic-bezier(0.2, 0, 0.1, 1);
+  --duration: 180ms;
+
+  /* --- layout ------------------------------------------------------------- */
+  --content-width: 1120px;
+  --header-height: 60px;
+
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------------------
+   Dark mode: a warm dark, not a blue-black. The same paper-and-ink idea with
+   the values inverted, so the accent and the three macro hues stay recognisable
+   rather than being replaced by a second palette.
+   --------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1a1816;
+    --surface: #232019;
+    --surface-sunken: #2b2721;
+    --ink: #f5f1ea;
+    --ink-muted: #b3a99c;
+    --line: #37322b;
+    --line-strong: #4a4238;
+
+    --accent: #7fb3a0;
+    --accent-hover: #94c2b1;
+    --accent-soft: #26362f;
+    --accent-on: #17211c;
+
+    /* Lifted for contrast against the dark ground; same three hues. */
+    --protein: #7fb3a0;
+    --carbs: #dda45f;
+    --fat: #b39acb;
+    --neutral: #857d74;
+
+    --protein-soft: #26362f;
+    --carbs-soft: #3a2e1f;
+    --fat-soft: #322a3a;
+
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 30%);
+    --shadow-raised: 0 12px 32px -8px rgb(0 0 0 / 55%);
+
+    color-scheme: dark;
+  }
+}

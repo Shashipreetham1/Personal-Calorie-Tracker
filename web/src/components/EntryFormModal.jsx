@@ -5,6 +5,7 @@ import { Button } from './Button.jsx';
 import { Alert } from './Alert.jsx';
 import { FormField } from './FormField.jsx';
 import { FileDropzone } from './FileDropzone.jsx';
+import { CameraIcon } from './icons.jsx';
 import { createEntry } from '../api/entries.js';
 import { extractFromImage } from '../api/extract.js';
 import { MEALS, datetimeLocal } from '../lib/format.js';
@@ -189,6 +190,7 @@ export function EntryFormModal({ open, onClose, onSaved, defaultMealType = 'brea
     >
       <form id="entry-form" onSubmit={handleSubmit} noValidate>
         <FileDropzone
+          Icon={CameraIcon}
           accept={['image/jpeg', 'image/png', 'image/webp']}
           prompt="Drop a photo of a nutrition label or a plate of food"
           hint="JPEG, PNG or WebP, up to 5MB"
@@ -209,38 +211,36 @@ export function EntryFormModal({ open, onClose, onSaved, defaultMealType = 'brea
           </Alert>
         )}
 
-        <div className="form-row">
-          <div className="field">
-            <span className="field-label">Meal</span>
-            <div className="segmented" role="group" aria-label="Meal">
-              {MEALS.map((meal) => (
-                <button
-                  key={meal.key}
-                  type="button"
-                  className={mealType === meal.key ? 'segment segment-active' : 'segment'}
-                  aria-pressed={mealType === meal.key}
-                  onClick={() => setMealType(meal.key)}
-                >
-                  {meal.label}
-                </button>
-              ))}
-            </div>
+        <div className="field">
+          <span className="field-label">Meal</span>
+          <div className="segmented" role="group" aria-label="Meal">
+            {MEALS.map((meal) => (
+              <button
+                key={meal.key}
+                type="button"
+                className={mealType === meal.key ? 'segment segment-active' : 'segment'}
+                aria-pressed={mealType === meal.key}
+                onClick={() => setMealType(meal.key)}
+              >
+                {meal.label}
+              </button>
+            ))}
           </div>
-
-          <FormField
-            id="consumedAt"
-            label="When"
-            type="datetime-local"
-            value={consumedAt}
-            max={datetimeLocal.from(new Date())}
-            onChange={(event) => setConsumedAt(event.target.value)}
-          />
         </div>
+
+        <FormField
+          id="consumedAt"
+          label="When"
+          type="datetime-local"
+          value={consumedAt}
+          max={datetimeLocal.from(new Date())}
+          onChange={(event) => setConsumedAt(event.target.value)}
+        />
 
         {items.map((item, index) => (
           <fieldset className="item-fieldset" key={item.key}>
             <legend className="item-legend">
-              {multiple ? `Item ${index + 1}` : 'Food'}
+              {multiple ? `Item ${index + 1}` : 'Item'}
               {item.confidence !== null && item.confidence !== undefined && (
                 <span className="muted"> · {Math.round(item.confidence * 100)}% confident</span>
               )}

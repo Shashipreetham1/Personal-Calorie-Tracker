@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth.jsx';
 import { FormField } from '../components/FormField.jsx';
 import { Button } from '../components/Button.jsx';
 import { Alert } from '../components/Alert.jsx';
+import { BrandMark } from '../components/icons.jsx';
 
 /**
  * Client-side rules, mirroring the server's.
@@ -92,85 +93,106 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="auth-page">
-      <div className="auth-card">
-        <h1 className="auth-title">Calorie Tracker</h1>
-        <p className="muted">
-          {isSignup ? 'Create an account to start tracking.' : 'Sign in to your account.'}
+    <main className="auth-split">
+      {/* The left panel carries the brand so the form itself can stay plain. */}
+      <aside className="auth-aside">
+        <span className="brand">
+          <BrandMark size={24} />
+          <span className="brand-word">Calorie Tracker</span>
+        </span>
+
+        <p className="auth-pitch">Know what you ate, without the arithmetic.</p>
+
+        <p className="auth-aside-foot">
+          Log a meal by typing it, photographing it, importing a PDF, or just describing it.
         </p>
+      </aside>
 
-        <div className="tabs" role="tablist" aria-label="Sign in or create an account">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!isSignup}
-            className={!isSignup ? 'tab tab-active' : 'tab'}
-            onClick={() => switchMode('login')}
-          >
-            Sign in
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={isSignup}
-            className={isSignup ? 'tab tab-active' : 'tab'}
-            onClick={() => switchMode('signup')}
-          >
-            Create account
-          </button>
-        </div>
+      <div className="auth-main">
+        <div className="auth-form">
+          <h1 className="auth-title">
+            {isSignup ? 'Create an account' : 'Welcome back'}
+          </h1>
+          <p className="muted">
+            {isSignup ? 'It takes an email and a password.' : 'Sign in to pick up where you left off.'}
+          </p>
 
-        <form onSubmit={handleSubmit} noValidate>
-          {isSignup && (
+          <div className="tabs" role="tablist" aria-label="Sign in or create an account">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isSignup}
+              className={!isSignup ? 'tab tab-active' : 'tab'}
+              onClick={() => switchMode('login')}
+            >
+              Sign in
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isSignup}
+              className={isSignup ? 'tab tab-active' : 'tab'}
+              onClick={() => switchMode('signup')}
+            >
+              Create account
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} noValidate>
+            {isSignup && (
+              <FormField
+                id="name"
+                label="Name"
+                type="text"
+                autoComplete="name"
+                placeholder="Optional"
+                value={form.name}
+                onChange={updateField('name')}
+                error={fieldErrors.name}
+              />
+            )}
+
             <FormField
-              id="name"
-              label="Name"
-              type="text"
-              autoComplete="name"
-              placeholder="Optional"
-              value={form.name}
-              onChange={updateField('name')}
-              error={fieldErrors.name}
+              id="email"
+              label="Email"
+              type="email"
+              autoComplete="email"
+              required
+              value={form.email}
+              onChange={updateField('email')}
+              error={fieldErrors.email}
             />
-          )}
 
-          <FormField
-            id="email"
-            label="Email"
-            type="email"
-            autoComplete="email"
-            required
-            value={form.email}
-            onChange={updateField('email')}
-            error={fieldErrors.email}
-          />
+            <FormField
+              id="password"
+              label="Password"
+              type="password"
+              autoComplete={isSignup ? 'new-password' : 'current-password'}
+              required
+              value={form.password}
+              onChange={updateField('password')}
+              error={fieldErrors.password}
+              hint={isSignup ? 'At least 8 characters' : undefined}
+            />
 
-          <FormField
-            id="password"
-            label="Password"
-            type="password"
-            autoComplete={isSignup ? 'new-password' : 'current-password'}
-            required
-            value={form.password}
-            onChange={updateField('password')}
-            error={fieldErrors.password}
-            hint={isSignup ? 'At least 8 characters' : undefined}
-          />
+            <Alert tone="error">{submitError}</Alert>
 
-          <Alert tone="error">{submitError}</Alert>
+            <Button
+              type="submit"
+              className="button button-primary button-block"
+              loading={submitting}
+              loadingLabel={isSignup ? 'Creating account…' : 'Signing in…'}
+            >
+              {isSignup ? 'Create account' : 'Sign in'}
+            </Button>
+          </form>
 
-          <Button
-            type="submit"
-            loading={submitting}
-            loadingLabel={isSignup ? 'Creating account…' : 'Signing in…'}
-          >
-            {isSignup ? 'Create account' : 'Sign in'}
-          </Button>
-        </form>
-
-        <p className="auth-demo">
-          Demo account: <code>demo@example.com</code> / <code>demo1234</code>
-        </p>
+          <p className="demo-pill">
+            <span>Demo account</span>
+            <code>demo@example.com</code>
+            <code>demo1234</code>
+          </p>
+        </div>
       </div>
     </main>
   );

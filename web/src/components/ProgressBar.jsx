@@ -4,26 +4,40 @@ import { formatCalories, formatGrams } from '../lib/format.js';
  * Progress towards one target.
  *
  * The bar is capped at 100% so a large overshoot cannot run off the card, but
- * the number is not — the user needs to see that they are at 2,800 of 2,000,
- * and a bar pinned at full with the real figure beside it says that clearly.
+ * the number is not — you need to see that you are at 2,800 of 2,000. Going
+ * over renders in ochre, never red: the app reports, it does not scold.
  *
  * @param {{ label: string, value: number, target: number | null, unit?: string,
- *   size?: 'large' | 'small' }} props
+ *   colour?: string, track?: string }} props
  */
-export function ProgressBar({ label, value, target, unit = '', size = 'small' }) {
+export function ProgressBar({ label, value, target, unit = '', colour, track }) {
   const format = unit === 'kcal' ? formatCalories : formatGrams;
   const hasTarget = typeof target === 'number' && target > 0;
   const ratio = hasTarget ? value / target : 0;
   const percent = Math.min(100, Math.round(ratio * 100));
   const over = hasTarget && ratio > 1.05;
 
+  const style = {
+    '--progress-colour': over ? 'var(--carbs)' : (colour ?? 'var(--accent)'),
+    '--progress-track': track ?? 'var(--surface-sunken)',
+  };
+
   return (
-    <div className={size === 'large' ? 'progress progress-large' : 'progress'}>
+    <div className="progress" style={style}>
       <div className="progress-head">
-        <span className="progress-label">{label}</span>
+        <span className="progress-label">
+          <span className="progress-swatch" aria-hidden="true" />
+          {label}
+        </span>
         <span className="progress-value">
-          <strong>{format(value)}</strong>
-          {hasTarget ? <span className="muted"> / {format(target)}{unit && ` ${unit}`}</span> : unit && <span className="muted"> {unit}</span>}
+          <span className="figure">{format(value)}</span>
+          {hasTarget && (
+            <span className="muted">
+              {' / '}
+              {format(target)}
+              {unit && ` ${unit}`}
+            </span>
+          )}
         </span>
       </div>
 
@@ -35,13 +49,10 @@ export function ProgressBar({ label, value, target, unit = '', size = 'small' })
         aria-valuemax={100}
         aria-label={`${label}: ${format(value)}${hasTarget ? ` of ${format(target)}` : ''}`}
       >
-        <div
-          className={over ? 'progress-fill progress-fill-over' : 'progress-fill'}
-          style={{ width: `${hasTarget ? percent : 0}%` }}
-        />
+        <div className="progress-fill" style={{ width: `${hasTarget ? percent : 0}%` }} />
       </div>
 
-      {!hasTarget && <p className="progress-note muted">No target set</p>}
+      {!hasTarget && <p className="progress-note">No target set</p>}
     </div>
   );
 }

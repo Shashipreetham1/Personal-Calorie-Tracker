@@ -763,6 +763,29 @@ A mixed result is a success (`201`), not a failure. Nothing importable at all is
 a `200` with `imported: 0` — still not an error, because the request was well
 formed.
 
+### The interface never scolds
+
+Two product decisions are enforced in the stylesheet rather than left to
+judgement per screen.
+
+**No red.** Going over a target is information, not an error. Over-target days,
+over-target macro bars and the goal-vs-actual chart all render in ochre
+(`--carbs`), the same colour the app already uses for carbohydrate — noticeable,
+never alarming. Red is reserved for nothing at all: a failed request reports in
+the same ochre. A calorie tracker that flashes red at a large dinner teaches
+people to stop opening it.
+
+**No streaks, no badges, no gamification.** There is no logging streak, no
+"perfect week", no congratulation. The reward for logging is an accurate
+history, and a streak counter mostly punishes the day you forget. The Today
+screen leads with what is *left*, which is the number that changes a decision;
+everything else is a record.
+
+The palette makes this cheap to hold: one accent (`--accent`, a deep green), one
+caution (`--carbs`, ochre), and macro colours that carry meaning consistently —
+protein green, carbohydrate ochre, fat violet — in the charts, the progress bars
+and the goal card alike.
+
 ### Calendar dates are strings, end to end
 
 `node-postgres` turns a `date` column into a JavaScript `Date` at **local**

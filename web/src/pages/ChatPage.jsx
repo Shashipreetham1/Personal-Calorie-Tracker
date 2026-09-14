@@ -1,16 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { sendMessage, getChatHistory } from '../api/chat.js';
-import { LoadingState, EmptyState, ErrorState } from '../components/States.jsx';
+import { EmptyState, ErrorState } from '../components/States.jsx';
 import { Alert } from '../components/Alert.jsx';
+import { AlertIcon, CheckIcon } from '../components/icons.jsx';
 import { formatTime, toPlainText } from '../lib/format.js';
 
 const PAGE_SIZE = 30;
 
-/** Openers that show what the assistant can actually do, rather than a blank box. */
+/**
+ * Openers that show what the assistant can actually do, rather than a blank box.
+ *
+ * Three, one per capability — log, report, set a goal. A longer list reads as a
+ * menu and stops feeling like conversation.
+ */
 const SUGGESTIONS = [
   'I had 2 rotis and a bowl of dal for lunch',
   'How am I doing against my goal today?',
-  'Summarise my week',
   'Set my daily goal to 2000 calories with 150g protein',
 ];
 
@@ -24,12 +29,30 @@ const SUGGESTIONS = [
 function ToolCallCard({ call }) {
   return (
     <div className={call.ok ? 'tool-call' : 'tool-call tool-call-failed'}>
-      <span className="tool-call-icon" aria-hidden="true">
-        {call.ok ? '✓' : '!'}
-      </span>
-      <span className="tool-call-text">{call.summary}</span>
+      <span className="tool-call-icon">{call.ok ? <CheckIcon size={13} /> : <AlertIcon size={13} />}</span>
+      <span className="tool-call-text">{withMonoNumbers(call.summary)}</span>
     </div>
   );
+}
+
+/**
+ * Sets the numbers in a receipt in the monospace face.
+ *
+ * "Logged 1 bowl Poha — 270 cal" is a sentence with data in it; the figures
+ * should read as figures, and tabular numerals keep a column of receipts aligned.
+ */
+function withMonoNumbers(summary) {
+  return String(summary ?? '')
+    .split(/(\d[\d.,]*)/)
+    .map((part, index) =>
+      /^\d/.test(part) ? (
+        <span className="tool-figure" key={index}>
+          {part}
+        </span>
+      ) : (
+        part
+      ),
+    );
 }
 
 /** One turn in the conversation. */
@@ -151,17 +174,23 @@ export default function ChatPage() {
   }
 
   return (
-    <section className="page chat-page">
+    <section className="page">
       <div className="page-head">
         <h1 className="page-title">Chat</h1>
-        <p className="muted chat-subtitle">
+        <p className="section-note">
           Log meals, check progress and set goals in plain language.
         </p>
       </div>
 
       <div className="card chat-card">
         <div className="chat-messages" ref={listRef}>
-          {loadingHistory && <LoadingState label="Loading your conversation…" />}
+          {loadingHistory && (
+            <div aria-busy="true" aria-label="Loading your conversation">
+              {Array.from({ length: 3 }, (_, index) => (
+                <div className="skeleton skeleton-row" key={index} style={{ height: 44 }} />
+              ))}
+            </div>
+          )}
 
           {!loadingHistory && historyError && (
             <ErrorState error={historyError} onRetry={() => loadHistory(1)} />
@@ -208,8 +237,12 @@ export default function ChatPage() {
                 {sending && (
                   <li className="message message-assistant">
                     <div className="message-bubble message-pending" role="status">
-                      <span className="spinner" aria-hidden="true" />
-                      <span className="muted">Thinking…</span>
+                      <span className="typing" aria-hidden="true">
+                        <span />
+                        <span />
+                        <span />
+                      </span>
+                      <span className="visually-hidden">Thinking…</span>
                     </div>
                   </li>
                 )}
@@ -233,7 +266,7 @@ export default function ChatPage() {
             autoComplete="off"
             disabled={sending}
           />
-          <button type="submit" className="button button-primary chat-send" disabled={!draft.trim() || sending}>
+          <button type="submit" className="button button-primary" disabled={!draft.trim() || sending}>
             {sending ? 'Sending…' : 'Send'}
           </button>
         </form>
