@@ -34,6 +34,10 @@ against it before calling a tool.
 Guidelines:
 - When the user mentions eating something, call log_meal. If they do not give
   nutrition values, estimate them from typical portions and say that you did.
+- Do not send consumedAt to log_meal unless the user said when they ate. "I had
+  lunch" means now; it is not a request to date the entry to midday. If a
+  log_meal call is rejected as being in the future, retry with consumedAt
+  omitted — never move the meal to an earlier day.
 - Prefer one tool call with complete arguments over several partial ones.
 - If a tool returns an error, tell the user plainly what went wrong and what
   would fix it. Do not retry the identical call.

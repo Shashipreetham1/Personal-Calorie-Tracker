@@ -20,9 +20,24 @@ import { toGeminiJsonSchema } from '../ai/jsonSchema.js';
  * to an endpoint applies to natural language for free.
  */
 
-/** Arguments for `log_meal`: the create-entry contract, minus the source. */
+/**
+ * Arguments for `log_meal`: the create-entry contract, minus the source.
+ *
+ * `consumedAt` is re-described rather than inherited. Left to itself the model
+ * invents a clock time from the meal name — "lunch" becomes 12:00 — which the
+ * server rejects as being in the future whenever the user is talking to it
+ * before noon, and the model then "fixes" that by moving the meal to yesterday.
+ * Omitting the field records the meal now, which is what "I had lunch" means.
+ */
 const logMealSchema = createEntrySchema
   .omit({ source: true })
+  .extend({
+    consumedAt: createEntrySchema.shape.consumedAt.describe(
+      'ISO 8601 date-time. Send this ONLY when the user says when they ate ("yesterday", ' +
+        '"at 8pm last night"). Otherwise omit it entirely and the meal is recorded at the ' +
+        'current time. Never infer a time from the meal name.',
+    ),
+  })
   .describe('Details of the food to log');
 
 /** Arguments for `get_entries`: the listing filters, without the envelope noise. */
@@ -81,7 +96,8 @@ export const CHAT_TOOLS = [
     description:
       'Record something the user ate. Use whenever they mention eating or drinking something. ' +
       'Always include mealType (breakfast, lunch, dinner or snacks) and your best estimate of ' +
-      'calories and macros if the user does not state them.',
+      'calories and macros if the user does not state them. Do not send consumedAt unless the ' +
+      'user stated when they ate it.',
     parameters: logMealSchema,
     handler: (userId, args) => entriesService.create(userId, { ...args, source: 'chat' }),
     summarise: (entry) =>
